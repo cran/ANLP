@@ -1,0 +1,92 @@
+---
+title: "ANLP Package"
+author: "Achal Shah"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+ANLP is a package which provides all the functionalities to build text prediction model.  
+
+## Functions  
+
+Functionalities supported by ANLP package:  
+
+- Read text data in binary mode
+- Sample text data
+- Clean text data by applying transformations to lower case, remove numbers, punctuation, abbreviations, contractions, symbols, white space etc.
+- Build N-gram model and generate term document frequency tabel
+- Predict next word by using N-gram models and backoff algorithm
+
+## readTextFile
+This function reads text data from file in specificied encoding.
+```{r echo=T,message=F}
+library(ANLP)
+print(length(twitter.data))
+```
+
+There are more than 100k tweets in the dataset. Initially we will sample 10k tweets to build our model. 
+
+## sampleTextData
+We need to sample 10% of the data. So, we will use SampleTextData function following way: 
+```{r}
+train.data <- sampleTextData(twitter.data,0.1)
+print(length(train.data))
+head(train.data)
+```
+
+Now, we have 10k tweets but we can see that data is very impure. There are many punctuations, abbreviations, contractions. 
+
+## cleanTextData
+```{r}
+train.data.cleaned <- cleanTextData(train.data)
+train.data.cleaned[[1]]$content[1:5]
+```
+
+As we can see, all the texts are now cleaned and looks good :)
+
+Now, next step is to build N-gram models by using our cleaned data corpus.
+
+## generateTDM
+We will build 1,2,3 gram models and generate term frequency matrix for all the data.
+```{r}
+unigramModel <- generateTDM(train.data.cleaned,1)
+head(unigramModel)
+```
+
+```{r}
+bigramModel <- generateTDM(train.data.cleaned,2)
+head(bigramModel)
+```
+
+```{r}
+trigramModel <- generateTDM(train.data.cleaned,3)
+head(trigramModel)
+```
+
+Good work :) Now we have all 3 models so lets predict.
+
+## predict_Backoff
+This function accepts list of all the N-gram models. So, lets merge all the N-gram models in single list.  
+Note: Remember to merge N-gram models in decending order. (3,2,1 Ngram models)
+```{r}
+nGramModelsList <- list(trigramModel,bigramModel,unigramModel)
+```
+
+Lets predict some strings:  
+
+```{r}
+testString <- "I am the one who"
+predict_Backoff(testString,nGramModelsList)
+
+testString <- "what is my"
+predict_Backoff(testString,nGramModelsList)
+
+testString <- "the best movie"
+predict_Backoff(testString,nGramModelsList)
+```
+
+Enjoy and free feel to give feedbacks on <achalshah20@gmail.com>
